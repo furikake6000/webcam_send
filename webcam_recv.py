@@ -25,6 +25,11 @@ if __name__ == '__main__':
         remained_data = WIDTH * HEIGHT * 3
         while remained_data > 0:
             receivedstr, _=s.recvfrom(min(1024*8, remained_data))
+            index = receivedstr.find(b'_frame_')
+            if(index != -1):
+                receivedstr = receivedstr[:index]
+                data = b''
+                remained_data = WIDTH * HEIGHT * 3
             remained_data -= len(receivedstr)
             data += receivedstr
         if not data:

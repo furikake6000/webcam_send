@@ -42,6 +42,9 @@ def capture_camera(sock, addr, mirror=True):
                 data_part = data[:2048]
                 data = data[2048:]
                 sock.sendto(data_part, addr)
+            
+            sock.sendto(b'_frame_', addr)
+
     except KeyboardInterrupt:
         # キャプチャを解放する
         cap.release()
