@@ -4,28 +4,27 @@ if(ros_cv_path in sys.path):
     sys.path.remove(ros_cv_path)
 import cv2
 import numpy as np
-import cv2
 import threading
 import struct
 
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_DGRAM
 
 WIDTH = 320
 HEIGHT = 240
 
 if __name__ == '__main__':
-    s = socket(AF_INET, SOCK_STREAM)
+    s = socket(AF_INET, SOCK_DGRAM)
     # listen to another device
     s.bind(('', 3000))
-    s.listen(1)
-    conn, addr = s.accept() # Get connection
-    print('Connected by', addr)
+    #s.listen(1)
+    #conn, addr = s.accept() # Get connection
+    #print('Connected by', addr)
 
     while True:
         data = b''
         remained_data = WIDTH * HEIGHT * 3
         while remained_data > 0:
-            receivedstr=conn.recv(min(1024*8, remained_data))
+            receivedstr, _=s.recvfrom(min(1024*8, remained_data))
             remained_data -= len(receivedstr)
             data += receivedstr
         if not data:
@@ -34,8 +33,8 @@ if __name__ == '__main__':
         received_frame = np.frombuffer(data, dtype=np.uint8).reshape((HEIGHT, WIDTH, 3))
 
         cv2.imshow('camera capture', received_frame)
-        k = cv2.waitKey(1) # 1msec待つ
-        if k == 113: # Qキーで終了
+        k = cv2.waitKey(1) # wait 1msec
+        if k == 113: # exit with Q
             break
 
     s.close()

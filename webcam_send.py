@@ -6,14 +6,14 @@ import numpy as np
 import cv2
 import threading
 
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_DGRAM
 
 WIDTH = 320
 HEIGHT = 240
 
-ADDR = '192.168.1.13'
+ADDR = 'localhost'
 
-def capture_camera(sock, mirror=True):
+def capture_camera(sock, addr, mirror=True):
     """Capture video from camera"""
     # カメラをキャプチャする
     cap = cv2.VideoCapture(0) # 0はカメラのデバイス番号
@@ -38,7 +38,10 @@ def capture_camera(sock, mirror=True):
             # print(encoded.tobytes())
 
             data = frame.tobytes()
-            sock.send(data)
+            while len(data) > 0:
+                data_part = data[:2048]
+                data = data[2048:]
+                sock.sendto(data_part, addr)
     except KeyboardInterrupt:
         # キャプチャを解放する
         cap.release()
@@ -46,9 +49,10 @@ def capture_camera(sock, mirror=True):
         sock.close()
 
 if __name__ == '__main__':
-    s = socket(AF_INET, SOCK_STREAM)
+    s = socket(AF_INET, SOCK_DGRAM)
+    to_addr = (ADDR, 3000)
     # connect to server
-    s.connect((ADDR, 3000))
+    #s.connect((ADDR, 3000))
 
-    capture_camera(s)
+    capture_camera(s, to_addr)
     
