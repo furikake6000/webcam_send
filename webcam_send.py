@@ -1,15 +1,17 @@
 import sys
-sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+ros_cv_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
+if(ros_cv_path in sys.path):
+    sys.path.remove(ros_cv_path)
 import numpy as np
 import cv2
 import threading
 
 from socket import socket, AF_INET, SOCK_STREAM
 
-WIDTH = 640
-HEIGHT = 480
+WIDTH = 320
+HEIGHT = 240
 
-ADDR = 'localhost'
+ADDR = '192.168.1.13'
 
 def capture_camera(sock, mirror=True):
     """Capture video from camera"""

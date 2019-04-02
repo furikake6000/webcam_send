@@ -1,5 +1,7 @@
 import sys
-sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+ros_cv_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
+if(ros_cv_path in sys.path):
+    sys.path.remove(ros_cv_path)
 import cv2
 import numpy as np
 import cv2
@@ -8,8 +10,8 @@ import struct
 
 from socket import socket, AF_INET, SOCK_STREAM
 
-WIDTH = 640
-HEIGHT = 480
+WIDTH = 320
+HEIGHT = 240
 
 if __name__ == '__main__':
     s = socket(AF_INET, SOCK_STREAM)
