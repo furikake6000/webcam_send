@@ -12,6 +12,8 @@ WIDTH = 320
 HEIGHT = 240
 
 ADDR = 'localhost'
+if(len(sys.argv) > 1):
+    ADDR = sys.argv[1]
 
 def capture_camera(sock, addr, mirror=True):
     """Capture video from camera"""
