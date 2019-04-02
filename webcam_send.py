@@ -1,3 +1,5 @@
+import sys
+sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 import numpy as np
 import cv2
 import threading
@@ -6,6 +8,8 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 WIDTH = 640
 HEIGHT = 480
+
+ADDR = 'localhost'
 
 def capture_camera(sock, mirror=True):
     """Capture video from camera"""
@@ -42,7 +46,7 @@ def capture_camera(sock, mirror=True):
 if __name__ == '__main__':
     s = socket(AF_INET, SOCK_STREAM)
     # connect to server
-    s.connect(('localhost', 3000))
+    s.connect((ADDR, 3000))
 
     capture_camera(s)
     
