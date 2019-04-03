@@ -11,8 +11,8 @@
 // #include "openpose/core/common.hpp"
 // #include "openpose/headers.hpp"
 
-#define WIDTH 320
-#define HEIGHT 240
+#define WIDTH 32
+#define HEIGHT 24
 #define PORT 3000
 
 #define TMP_BUF_SIZE 1024
@@ -57,8 +57,21 @@ int main(){
         while(imgbuf_head < WIDTH * HEIGHT * 3){
             int remainsize = min(WIDTH * HEIGHT * 3 - imgbuf_head, TMP_BUF_SIZE);
 
+            // receive data
             int receivedsize = recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
-            memcpy(&imgbuf[imgbuf_head], tmpbuf, receivedsize);
+            
+            // search __frame__ signal
+            char* frame_end_sig = strstr(tmpbuf, "__frame__");
+            if (frame_end_sig != NULL) {
+                // set head to 0
+                imgbuf_head = 0;
+                receivedsize = frame_end_sig - tmpbuf;
+                memcpy(&imgbuf[imgbuf_head], frame_end_sig, receivedsize);
+            }else{
+                // copy to buffer
+                memcpy(&imgbuf[imgbuf_head], tmpbuf, receivedsize);
+            }
+
             imgbuf_head += receivedsize;
         }
 
