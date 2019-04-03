@@ -23,15 +23,13 @@ if __name__ == '__main__':
     lastbufdata = b''
     while True:
         data = lastbufdata
-        remained_data = WIDTH * HEIGHT * 3 - len(lastbufdata)
-        while remained_data > 0:
-            receivedstr, _=s.recvfrom(min(1024*8, remained_data))
+        while True:
+            receivedstr, _=s.recvfrom(1024*8)
             index = receivedstr.find(b'_frame_')
             if(index != -1):
                 data += receivedstr[:index]
                 lastbufdata = receivedstr[(index + 7):]
                 break
-            remained_data -= len(receivedstr)
             data += receivedstr
         if not data:
            break
