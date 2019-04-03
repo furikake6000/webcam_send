@@ -34,6 +34,9 @@ if __name__ == '__main__':
         if not data:
            break
 
+        if len(data) < WIDTH * HEIGHT * 3:
+            data += [0] * (WIDTH * HEIGHT * 3 - len(data))
+
         received_frame = np.frombuffer(data, dtype=np.uint8).reshape((HEIGHT, WIDTH, 3))
 
         cv2.imshow('camera capture', received_frame)
