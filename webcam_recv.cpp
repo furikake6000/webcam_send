@@ -71,6 +71,7 @@ int main(){
             imgbufstr += tmpdatastr;
         }
 
+        strncpy(imgbuf, imgbufstr.c_str(), WIDTH * HEIGHT * 3);
         received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbufstr.c_str());
 
         cv::imshow("camera capture", received_frame);
