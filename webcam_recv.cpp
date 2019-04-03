@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,6 +20,7 @@ int main(){
     char imgbuf[WIDTH * HEIGHT * 3];
     std::string imgbufstr;
     int imgbufsize;
+    cv::Mat received_frame;
 
     char tmpbuf[1024]; // temporary buffer
 
@@ -61,9 +63,14 @@ int main(){
         }*/
         imgbufstr = "";
         while(imgbufstr.length() < WIDTH * HEIGHT * 3){
-            int remainsize = WIDTH * HEIGHT * 3 - imgbufstr.length();
-            recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
-        }
-    }
+            int remainsize = min(WIDTH * HEIGHT * 3 - imgbufstr.length(), 1024);
 
+            recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
+            imgbufstr += str(tmpbuf, remainsize);
+        }
+
+        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbufstr.buffer());
+
+        cv::imshow('camera capture', received_frame);
+    }
 }
