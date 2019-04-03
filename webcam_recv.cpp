@@ -63,14 +63,16 @@ int main(){
         }*/
         imgbufstr = "";
         while(imgbufstr.length() < WIDTH * HEIGHT * 3){
-            int remainsize = min(WIDTH * HEIGHT * 3 - imgbufstr.length(), 1024);
+            int remainsize = min(WIDTH * HEIGHT * 3 - (int)imgbufstr.length(), 1024);
 
             recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
-            imgbufstr += str(tmpbuf, remainsize);
+            string tmpdatastr= tmpbuf;
+            tmpdatastr = tmpdata.substr(0, remainsize);
+            imgbufstr += tmpdatastr;
         }
 
-        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbufstr.buffer());
+        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbufstr.c_str());
 
-        cv::imshow('camera capture', received_frame);
+        cv::imshow("camera capture", received_frame);
     }
 }
