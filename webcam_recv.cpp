@@ -67,13 +67,20 @@ int main(){
 
             recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
             string tmpdatastr= tmpbuf;
-            tmpdatastr = tmpdata.substr(0, remainsize);
+            tmpdatastr = tmpdatastr.substr(0, remainsize);
             imgbufstr += tmpdatastr;
         }
 
+        printf("Received %d bytes.", (int)imgbufstr.length());
+
         strncpy(imgbuf, imgbufstr.c_str(), WIDTH * HEIGHT * 3);
-        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbufstr.c_str());
+        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbuf);
 
         cv::imshow("camera capture", received_frame);
+
+        int k = cv::waitKey(1);
+        if (k == 113){
+            break;
+        }
     }
 }
