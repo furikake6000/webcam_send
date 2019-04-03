@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 #include <algorithm>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,6 +15,8 @@
 #define HEIGHT 240
 #define PORT 3000
 
+#define TMP_BUF_SIZE 1024
+
 using namespace std;
 
 int main(){
@@ -21,7 +24,7 @@ int main(){
     int imgbuf_head;
     cv::Mat received_frame;
 
-    char tmpbuf[1024]; // temporary buffer
+    char tmpbuf[TMP_BUF_SIZE]; // temporary buffer
 
     int s;
     struct sockaddr_in addr;
@@ -46,17 +49,22 @@ int main(){
         return -1;
     }
 
+    cout << "Start connection..." << endl;
+
     while(1){
 
         imgbuf_head = 0;
         while(imgbuf_head < WIDTH * HEIGHT * 3){
-            int remainsize = min(WIDTH * HEIGHT * 3 - imgbuf_head, 1024);
+            int remainsize = min(WIDTH * HEIGHT * 3 - imgbuf_head, TMP_BUF_SIZE);
 
-            recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
-            strncpy(&imgbuf[imgbuf_head], tmpbuf, remainsize);
+            int receivedsize = recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
+            memcpy(&imgbuf[imgbuf_head], tmpbuf, receivedsize);
+            imgbuf_head += receivedsize;
         }
 
-        received_frame = cv::Mat(HEIGHT, WIDTH, CV_8UC3, imgbuf);
+        cout << "data: " << imgbuf_head << "bytes " << (int)imgbuf[0] << ", " << (int)imgbuf[1] << ", " << (int)imgbuf[2] << endl;
+
+        received_frame = cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
 
         cv::imshow("camera capture", received_frame);
 
