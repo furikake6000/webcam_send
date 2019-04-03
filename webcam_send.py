@@ -8,8 +8,8 @@ import threading
 
 from socket import socket, AF_INET, SOCK_DGRAM
 
-WIDTH = 32
-HEIGHT = 24
+WIDTH = 320
+HEIGHT = 240
 
 ADDR = 'localhost'
 if(len(sys.argv) > 1):

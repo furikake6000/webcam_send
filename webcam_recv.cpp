@@ -11,8 +11,8 @@
 // #include "openpose/core/common.hpp"
 // #include "openpose/headers.hpp"
 
-#define WIDTH 32
-#define HEIGHT 24
+#define WIDTH 320
+#define HEIGHT 240
 #define PORT 3000
 
 #define TMP_BUF_SIZE 1024
