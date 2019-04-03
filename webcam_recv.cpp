@@ -61,7 +61,7 @@ int main(){
             int receivedsize = recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
             
             // search __frame__ signal
-            char* frame_end_sig = strstr(tmpbuf, "__frame__");
+            char* frame_end_sig = strstr(tmpbuf, "_frame_");
             if (frame_end_sig != NULL) {
                 // set head to 0
                 imgbuf_head = 0;
