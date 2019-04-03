@@ -20,16 +20,17 @@ if __name__ == '__main__':
     #conn, addr = s.accept() # Get connection
     #print('Connected by', addr)
 
+    lastbufdata = b''
     while True:
-        data = b''
-        remained_data = WIDTH * HEIGHT * 3
+        data = lastbufdata
+        remained_data = WIDTH * HEIGHT * 3 - len(lastbufdata)
         while remained_data > 0:
             receivedstr, _=s.recvfrom(min(1024*8, remained_data))
             index = receivedstr.find(b'_frame_')
             if(index != -1):
-                receivedstr = receivedstr[:index]
-                data = b''
-                remained_data = WIDTH * HEIGHT * 3
+                data += receivedstr[:index]
+                lastbufdata = receivedstr[(index + 7):]
+                break
             remained_data -= len(receivedstr)
             data += receivedstr
         if not data:
