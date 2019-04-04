@@ -21,19 +21,21 @@ using namespace std;
 
 int main(){
     char imgbuf[WIDTH * HEIGHT * 3];
-    int imgbuf_head;
+    int imgbuf_head = 0;
     cv::Mat received_frame;
 
     char tmpbuf[TMP_BUF_SIZE]; // temporary buffer
+    int tmpbuf_size;
+    char* frame_end_sig = NULL;
 
-    int s;
+    int s, conn;
     struct sockaddr_in addr;
  
-    socklen_t sin_size;
+    socklen_t sin_size = sizeof(struct sockaddr_in);
     struct sockaddr_in from_addr;
 
-    // udp socket
-    if((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    // tcp socket
+    if((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket");
         return -1;
     }
@@ -49,37 +51,50 @@ int main(){
         return -1;
     }
 
-    cout << "Start connection..." << endl;
+    // listen
+    if(listen(s, 1) < 0){
+        perror("listen");
+        return -1;
+    }
+
+    cout << "Waiting for connection..." << endl;
+
+    // wait for connection
+    if((conn = accept(s, (struct sockaddr *)&from_addr, &sin_size)) < 0) {
+        perror("accept");
+        return -1;
+    }
+
+    cout << "Connection established." << endl;
 
     while(1){
 
-        imgbuf_head = 0;
-        while(imgbuf_head < WIDTH * HEIGHT * 3){
-            int remainsize = min(WIDTH * HEIGHT * 3 - imgbuf_head, TMP_BUF_SIZE);
-
+        while (1) {
             // receive data
-            int receivedsize = recvfrom(s, tmpbuf, remainsize, 0, (struct sockaddr *)&from_addr, &sin_size);
+            tmpbuf_size = recv(conn, tmpbuf, TMP_BUF_SIZE, 0);
             
-            // search __frame__ signal
-            char* frame_end_sig = strstr(tmpbuf, "_frame_") + 7;
+            // check for endframe signal
+            frame_end_sig = strstr(tmpbuf, "_frame_");
             if (frame_end_sig != NULL) {
-                // set head to 0
-                imgbuf_head = 0;
-                receivedsize = frame_end_sig - tmpbuf;
-                memcpy(&imgbuf[imgbuf_head], frame_end_sig, receivedsize);
+                // end of frame
+                // Copy data before endframesig
+                memcpy(&imgbuf[imgbuf_head], tmpbuf, (frame_end_sig - tmpbuf));
             }else{
                 // copy to buffer
                 memcpy(&imgbuf[imgbuf_head], tmpbuf, receivedsize);
+                // move head index
+                imgbuf_head += tmpbuf_size;
             }
-
-            imgbuf_head += receivedsize;
         }
-
-        cout << "data: " << imgbuf_head << "bytes " << (int)imgbuf[0] << ", " << (int)imgbuf[1] << ", " << (int)imgbuf[2] << endl;
 
         received_frame = cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
 
         cv::imshow("camera capture", received_frame);
+
+        // Copy data after endframesig
+        char* frame_start_sig = frame_end_sig + 7;
+        memcpy(imgbuf, frame_start_sig, tmpbuf_size - frame_start_sig);
+        imgbuf_head = tmpbuf_size - frame_start_sig;
 
         int k = cv::waitKey(1);
         if (k == 113){
