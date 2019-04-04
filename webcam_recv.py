@@ -7,24 +7,24 @@ import numpy as np
 import threading
 import struct
 
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket, AF_INET, SOCK_STREAM
 
 WIDTH = 320
 HEIGHT = 240
 
 if __name__ == '__main__':
-    s = socket(AF_INET, SOCK_DGRAM)
+    s = socket(AF_INET, SOCK_STREAM)
     # listen to another device
     s.bind(('', 3000))
-    #s.listen(1)
-    #conn, addr = s.accept() # Get connection
-    #print('Connected by', addr)
+    s.listen(1)
+    conn, addr = s.accept() # Get connection
+    print('Connected by', addr)
 
     lastbufdata = b''
     while True:
         data = lastbufdata
         while True:
-            receivedstr, _=s.recvfrom(1024*8)
+            receivedstr=conn.recv(1024*8)
             index = receivedstr.find(b'_frame_')
             if(index != -1):
                 data += receivedstr[:index]
