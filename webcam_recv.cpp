@@ -79,9 +79,10 @@ int main(){
                 // end of frame
                 // Copy data before endframesig
                 memcpy(&imgbuf[imgbuf_head], tmpbuf, (frame_end_sig - tmpbuf));
+                break;
             }else{
                 // copy to buffer
-                memcpy(&imgbuf[imgbuf_head], tmpbuf, receivedsize);
+                memcpy(&imgbuf[imgbuf_head], tmpbuf, tmpbuf_size);
                 // move head index
                 imgbuf_head += tmpbuf_size;
             }
@@ -93,8 +94,8 @@ int main(){
 
         // Copy data after endframesig
         char* frame_start_sig = frame_end_sig + 7;
-        memcpy(imgbuf, frame_start_sig, tmpbuf_size - frame_start_sig);
-        imgbuf_head = tmpbuf_size - frame_start_sig;
+        memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
+        imgbuf_head = tmpbuf - frame_start_sig;
 
         int k = cv::waitKey(1);
         if (k == 113){
