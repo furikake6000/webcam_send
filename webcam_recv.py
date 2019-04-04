@@ -36,8 +36,8 @@ if __name__ == '__main__':
 
         if len(data) < WIDTH * HEIGHT * 3:
             data += [0] * (WIDTH * HEIGHT * 3 - len(data))
-        if len(data) > WIDTH * HEIGHT * 3:
-            data = data[WIDTH * HEIGHT * 3:]
+        elif len(data) > WIDTH * HEIGHT * 3:
+            data = data[:WIDTH * HEIGHT * 3]
 
         received_frame = np.frombuffer(data, dtype=np.uint8).reshape((HEIGHT, WIDTH, 3))
 
