@@ -42,7 +42,17 @@ args = parser.parse_known_args()
 
 # Custom Params (refer to include/openpose/flags.hpp for more parameters)
 params = dict()
-params["model_folder"] = "/home/furikake/Github/openpose/models"
+params["default_model_folder"] = "/home/furikake/Github/openpose/models"
+params["logging_level"] = 3
+params["output_resolution"] = "-1x-1"
+params["net_resolution"] = "-1x368"
+params["model_pose"] = "BODY_25"
+params["alpha_pose"] = 0.6
+params["scale_gap"] = 0.3
+params["scale_number"] = 1
+params["render_threshold"] = 0.05
+params["num_gpu_start"] = 0
+params["disable_blending"] = False
 
 # Add others in path?
 for i in range(0, len(args[1])):
@@ -68,9 +78,7 @@ if __name__ == '__main__':
     print('Connected by', addr)
 
     # Starting OpenPose
-    opWrapper = op.WrapperPython()
-    opWrapper.configure(params)
-    opWrapper.start()
+    openpose = OpenPose(params)
 
     lastbufdata = b''
     while True:
@@ -94,11 +102,9 @@ if __name__ == '__main__':
         received_frame = np.frombuffer(data, dtype=np.uint8).reshape((HEIGHT, WIDTH, 3))
 
         # Process Image
-        datum = op.Datum()
-        datum.cvInputData = received_frame
-        opWrapper.emplaceAndPop([datum])
+        keypoints, frame_with_bone = openpose.forward(received_frame, True)
 
-        cv2.imshow('camera capture', datum.cvOutputData)
+        cv2.imshow('camera capture', frame_with_bone)
         k = cv2.waitKey(1) # 1msec待つ
         if k == 113: # Qキーで終了
             break
