@@ -12,6 +12,9 @@ import struct
 
 from socket import socket, AF_INET, SOCK_STREAM
 
+WIDTH = 320
+HEIGHT = 240
+
 # Import Openpose (Windows/Ubuntu/OSX)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 try:
@@ -38,7 +41,7 @@ args = parser.parse_known_args()
 
 # Custom Params (refer to include/openpose/flags.hpp for more parameters)
 params = dict()
-params["model_folder"] = "../../../models/"
+params["model_folder"] = "/home/furikake/Github/openpose/models"
 
 # Add others in path?
 for i in range(0, len(args[1])):
@@ -68,15 +71,24 @@ if __name__ == '__main__':
     opWrapper.configure(params)
     opWrapper.start()
 
+    lastbufdata = b''
     while True:
-        data = b''
-        remained_data = WIDTH * HEIGHT * 3
-        while remained_data > 0:
-            receivedstr=conn.recv(min(1024*8, remained_data))
-            remained_data -= len(receivedstr)
+        data = lastbufdata
+        while True:
+            receivedstr=conn.recv(1024*8)
+            index = receivedstr.find(b'_frame_')
+            if(index != -1):
+                data += receivedstr[:index]
+                lastbufdata = receivedstr[(index + 7):]
+                break
             data += receivedstr
         if not data:
            break
+
+        if len(data) < WIDTH * HEIGHT * 3:
+            data += [0] * (WIDTH * HEIGHT * 3 - len(data))
+        elif len(data) > WIDTH * HEIGHT * 3:
+            data = data[:WIDTH * HEIGHT * 3]
 
         received_frame = np.frombuffer(data, dtype=np.uint8).reshape((HEIGHT, WIDTH, 3))
 
