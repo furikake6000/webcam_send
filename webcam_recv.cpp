@@ -90,10 +90,11 @@ int main(){
 
         received_frame = cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
 
-        cv::imshow("camera capture", received_frame);
+        // cv::imshow("camera capture", received_frame);
 
         // Copy data after endframesig
         char* frame_start_sig = frame_end_sig + 7;
+
         memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
         imgbuf_head = tmpbuf - frame_start_sig;
 
