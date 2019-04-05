@@ -1,0 +1,1 @@
+docker build -t imai-laboratory/webcam_recv .
