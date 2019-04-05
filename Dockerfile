@@ -2,7 +2,7 @@ FROM nvidia/cuda:8.0-cudnn5-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -y \
+RUN apt-get update -y --fix-missing \
     && apt-get install -y \
     build-essential \
     apt-utils \
