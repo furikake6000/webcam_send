@@ -42,7 +42,7 @@ args = parser.parse_known_args()
 
 # Custom Params (refer to include/openpose/flags.hpp for more parameters)
 params = dict()
-params["default_model_folder"] = "/home/furikake/Github/openpose/models"
+params["default_model_folder"] = "/home/furikake/Github/openpose/models/"
 params["logging_level"] = 3
 params["output_resolution"] = "-1x-1"
 params["net_resolution"] = "-1x368"
