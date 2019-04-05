@@ -19,6 +19,52 @@
 
 using namespace std;
 
+char* memnstr(char* s, char* cp, int n)
+{
+	char *s1, *s2;
+
+	if( *cp == '\0') return s; /* cp　の文字列長が0なら s を返す */ 
+
+	while( *s != '\0'){
+		while(*s != '\0' && *s != *cp) {/* 終端でなく、また、文字が見つからない間、繰り返す　*/
+			s++;
+		}
+		if(*s == '\0') return NULL;/* 見つからない */
+		s1 = s;
+		s2 = cp;
+		while ( *s1 == *s2 && *s1 != '\0'){ /* s1とcpの部分文字列が一致するか */
+			s1++;
+			s2++;
+		}
+		if( *s2 == '\0'){/* cp の文字列は、全て一致した */
+			return s;
+		}
+		s++; /* 次の位置から、調べ直す */
+	}
+	return NULL;/* 見つからない */
+}
+
+char* memnstr(char* mem, char* target, int memlen, int targetlen)
+{
+	char *s1, *s2;
+
+	if(targetlen == 0) return mem; // if target is null, return mem
+
+    int i, j;
+    for(i=0; i<=(memlen - targetlen); i++){
+        for(j=0; j<targetlen; j++){
+            if(mem[i + j] != target[j]) break;
+        }
+        if(j == targetlen - 1){
+            // find target
+            return &mem[i + j];
+        }
+    }
+
+    // Not found
+    return NULL;
+}
+
 int main(){
     char imgbuf[WIDTH * HEIGHT * 3];
     int imgbuf_head = 0;
@@ -74,7 +120,7 @@ int main(){
             tmpbuf_size = recv(conn, tmpbuf, TMP_BUF_SIZE, 0);
             
             // check for endframe signal
-            frame_end_sig = strstr(tmpbuf, "_frame_");
+            frame_end_sig = memnstr(tmpbuf, "_frame_", tmpbuf_size, 7);
             if (frame_end_sig != NULL) {
                 // end of frame
                 // Copy data before endframesig
