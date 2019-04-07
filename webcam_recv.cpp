@@ -19,35 +19,8 @@
 
 using namespace std;
 
-char* memnstr(char* s, char* cp, int n)
+char* memnstr(char* mem, const char* target, int memlen, int targetlen)
 {
-	char *s1, *s2;
-
-	if( *cp == '\0') return s; /* cp　の文字列長が0なら s を返す */ 
-
-	while( *s != '\0'){
-		while(*s != '\0' && *s != *cp) {/* 終端でなく、また、文字が見つからない間、繰り返す　*/
-			s++;
-		}
-		if(*s == '\0') return NULL;/* 見つからない */
-		s1 = s;
-		s2 = cp;
-		while ( *s1 == *s2 && *s1 != '\0'){ /* s1とcpの部分文字列が一致するか */
-			s1++;
-			s2++;
-		}
-		if( *s2 == '\0'){/* cp の文字列は、全て一致した */
-			return s;
-		}
-		s++; /* 次の位置から、調べ直す */
-	}
-	return NULL;/* 見つからない */
-}
-
-char* memnstr(char* mem, char* target, int memlen, int targetlen)
-{
-	char *s1, *s2;
-
 	if(targetlen == 0) return mem; // if target is null, return mem
 
     int i, j;
@@ -55,9 +28,9 @@ char* memnstr(char* mem, char* target, int memlen, int targetlen)
         for(j=0; j<targetlen; j++){
             if(mem[i + j] != target[j]) break;
         }
-        if(j == targetlen - 1){
-            // find target
-            return &mem[i + j];
+        if(j == targetlen){
+            // target found
+            return &mem[i];
         }
     }
 
@@ -66,11 +39,11 @@ char* memnstr(char* mem, char* target, int memlen, int targetlen)
 }
 
 int main(){
-    char imgbuf[WIDTH * HEIGHT * 3];
+    char imgbuf[WIDTH * HEIGHT * 3 + TMP_BUF_SIZE];
     int imgbuf_head = 0;
     cv::Mat received_frame;
 
-    char tmpbuf[TMP_BUF_SIZE]; // temporary buffer
+    char tmpbuf[TMP_BUF_SIZE + 1]; // temporary buffer
     int tmpbuf_size;
     char* frame_end_sig = NULL;
 
@@ -116,9 +89,10 @@ int main(){
     while(1){
 
         while (1) {
+            if (imgbuf_head >= WIDTH * HEIGHT * 3) break;
+
             // receive data
             tmpbuf_size = recv(conn, tmpbuf, TMP_BUF_SIZE, 0);
-            
             // check for endframe signal
             frame_end_sig = memnstr(tmpbuf, "_frame_", tmpbuf_size, 7);
             if (frame_end_sig != NULL) {
@@ -136,13 +110,17 @@ int main(){
 
         received_frame = cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
 
-        // cv::imshow("camera capture", received_frame);
+        cv::imshow("camera capture", received_frame);
 
-        // Copy data after endframesig
-        char* frame_start_sig = frame_end_sig + 7;
+        if (frame_end_sig != NULL){
+            // Copy data after endframesig
+            char* frame_start_sig = frame_end_sig + 7;
 
-        memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
-        imgbuf_head = tmpbuf - frame_start_sig;
+            memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
+            imgbuf_head = tmpbuf + tmpbuf_size - frame_start_sig;
+        }else{
+            imgbuf_head = 0;
+        }
 
         int k = cv::waitKey(1);
         if (k == 113){
