@@ -38,6 +38,48 @@ char* memnstr(char* mem, const char* target, int memlen, int targetlen)
     return NULL;
 }
 
+cv::Mat receive_frame(int conn){
+    static char imgbuf[WIDTH * HEIGHT * 3 + TMP_BUF_SIZE];
+    static char tmpbuf[TMP_BUF_SIZE];
+    static char* frame_end_sig = NULL;
+    static int tmpbuf_size;
+
+    int imgbuf_head = 0;
+
+    // Copy if data remains in tmpbuf
+    if (frame_end_sig != NULL){
+        // Copy data after frame_end_sig
+        char* frame_start_sig = frame_end_sig + 7;
+
+        memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
+        imgbuf_head = tmpbuf + tmpbuf_size - frame_start_sig;
+    }
+
+    // Data receive
+    while (1) {
+        if (imgbuf_head >= WIDTH * HEIGHT * 3) break;
+
+        // receive data
+        tmpbuf_size = recv(conn, tmpbuf, TMP_BUF_SIZE, 0);
+        // check for endframe signal
+        frame_end_sig = memnstr(tmpbuf, "_frame_", tmpbuf_size, 7);
+        if (frame_end_sig != NULL) {
+            // end of frame
+            // Copy data before endframesig
+            memcpy(&imgbuf[imgbuf_head], tmpbuf, (frame_end_sig - tmpbuf));
+            break;
+        }else{
+            // copy to buffer
+            memcpy(&imgbuf[imgbuf_head], tmpbuf, tmpbuf_size);
+            // move head index
+            imgbuf_head += tmpbuf_size;
+        }
+    }
+
+    // Make mat
+    return cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
+}
+
 int main(){
     char imgbuf[WIDTH * HEIGHT * 3 + TMP_BUF_SIZE];
     int imgbuf_head = 0;
@@ -88,39 +130,9 @@ int main(){
 
     while(1){
 
-        while (1) {
-            if (imgbuf_head >= WIDTH * HEIGHT * 3) break;
-
-            // receive data
-            tmpbuf_size = recv(conn, tmpbuf, TMP_BUF_SIZE, 0);
-            // check for endframe signal
-            frame_end_sig = memnstr(tmpbuf, "_frame_", tmpbuf_size, 7);
-            if (frame_end_sig != NULL) {
-                // end of frame
-                // Copy data before endframesig
-                memcpy(&imgbuf[imgbuf_head], tmpbuf, (frame_end_sig - tmpbuf));
-                break;
-            }else{
-                // copy to buffer
-                memcpy(&imgbuf[imgbuf_head], tmpbuf, tmpbuf_size);
-                // move head index
-                imgbuf_head += tmpbuf_size;
-            }
-        }
-
-        received_frame = cv::Mat(cv::Size(WIDTH, HEIGHT), CV_8UC3, imgbuf);
+        received_frame = receive_frame(conn);
 
         cv::imshow("camera capture", received_frame);
-
-        if (frame_end_sig != NULL){
-            // Copy data after endframesig
-            char* frame_start_sig = frame_end_sig + 7;
-
-            memcpy(imgbuf, frame_start_sig, &tmpbuf[tmpbuf_size] - frame_start_sig);
-            imgbuf_head = tmpbuf + tmpbuf_size - frame_start_sig;
-        }else{
-            imgbuf_head = 0;
-        }
 
         int k = cv::waitKey(1);
         if (k == 113){
