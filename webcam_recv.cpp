@@ -7,9 +7,9 @@
 #include <netinet/in.h>
 
 #include "opencv2/opencv.hpp"
-// #include "openpose/flags.hpp"
-// #include "openpose/core/common.hpp"
-// #include "openpose/headers.hpp"
+#include "openpose/flags.hpp"
+#include "openpose/core/common.hpp"
+#include "openpose/headers.hpp"
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -81,20 +81,41 @@ cv::Mat receive_frame(int conn){
 }
 
 int main(){
-    char imgbuf[WIDTH * HEIGHT * 3 + TMP_BUF_SIZE];
-    int imgbuf_head = 0;
+    // OpenPose values
     cv::Mat received_frame;
 
-    char tmpbuf[TMP_BUF_SIZE + 1]; // temporary buffer
-    int tmpbuf_size;
-    char* frame_end_sig = NULL;
-
+    // Connection values
     int s, conn;
     struct sockaddr_in addr;
  
     socklen_t sin_size = sizeof(struct sockaddr_in);
     struct sockaddr_in from_addr;
 
+    // OpenPose init
+    op::ConfigureLog::setPriorityThreshold(op::Priority::High);
+
+    // pose config
+    op::WrapperStructPose op_config;
+    op_config.poseModel = op::PoseModel::COCO_18;
+    op_config.modelFolder = "/root/openpose/models/";
+    opWrapper.configure(op_config);
+
+    // face config
+    op::WrapperStructFace opface_config;
+    opface_config.enable = false;
+    opface_config.renderMode = op::RenderMode::None;
+    opWrapper.configure(opface_config);
+
+    // hand config
+    op::WrapperStructHand ophand_config;
+    ophand_config.enable = false;
+    ophand_config.renderMode = op::RenderMode::None;
+    opWrapper.configure(ophand_config);
+
+    // run
+    opWrapper.start();
+
+    // Connection init
     // tcp socket
     if((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket");
@@ -131,8 +152,9 @@ int main(){
     while(1){
 
         received_frame = receive_frame(conn);
+        auto datum = opWrapper.emplaceAndPop(received_frame);
 
-        cv::imshow("camera capture", received_frame);
+        cv::imshow("camera capture", datum->at(0).cvOutputData);
 
         int k = cv::waitKey(1);
         if (k == 113){
