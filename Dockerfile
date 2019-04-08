@@ -49,7 +49,7 @@ WORKDIR /root
 # openpose
 RUN git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose.git
 WORKDIR /root/openpose
-RUN git checkout tags/v1.4.0 \
+RUN git checkout 173cd997d6e718eac044781325ae3d985df0427b \
     && git submodule update --init --recursive \
     && sed -i -e "s/ubuntu\/Makefile.example/ubuntu_deprecated\/Makefile.example/g" ubuntu_deprecated/install_openpose_if_cuda8.sh \
     && sed -i -e "s/ubuntu\/Makefile.config/ubuntu_deprecated\/Makefile.config/g" ubuntu_deprecated/install_openpose_if_cuda8.sh \

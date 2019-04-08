@@ -83,6 +83,7 @@ cv::Mat receive_frame(int conn){
 int main(){
     // OpenPose values
     cv::Mat received_frame;
+    op::Wrapper opWrapper{op::ThreadManagerMode::Asynchronous};
 
     // Connection values
     int s, conn;
@@ -98,12 +99,13 @@ int main(){
     op::WrapperStructPose op_config;
     op_config.poseModel = op::PoseModel::COCO_18;
     op_config.modelFolder = "/root/openpose/models/";
+    //op_config.renderMode = op::RenderMode::None;
     opWrapper.configure(op_config);
 
     // face config
     op::WrapperStructFace opface_config;
-    opface_config.enable = false;
-    opface_config.renderMode = op::RenderMode::None;
+    opface_config.enable = true;
+    opface_config.renderMode = op::RenderMode::Gpu;
     opWrapper.configure(opface_config);
 
     // hand config
@@ -111,6 +113,11 @@ int main(){
     ophand_config.enable = false;
     ophand_config.renderMode = op::RenderMode::None;
     opWrapper.configure(ophand_config);
+
+    // output
+    //op::WrapperStructOutput opout_config;
+    //opout_config.displayMode = op::DisplayMode::Display2D;
+    //opWrapper.configure(opout_config);
 
     // run
     opWrapper.start();
@@ -154,7 +161,7 @@ int main(){
         received_frame = receive_frame(conn);
         auto datum = opWrapper.emplaceAndPop(received_frame);
 
-        cv::imshow("camera capture", datum->at(0).cvOutputData);
+        if(!datum->empty()) cv::imshow("camera capture", datum->at(0).cvOutputData);
 
         int k = cv::waitKey(1);
         if (k == 113){
